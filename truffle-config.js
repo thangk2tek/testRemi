@@ -18,10 +18,10 @@
  *
  */
 
-// const HDWalletProvider = require('@truffle/hdwallet-provider');
-//
-// const fs = require('fs');
-// const mnemonic = fs.readFileSync(".secret").toString().trim();
+const HDWalletProvider = require('@truffle/hdwallet-provider');
+
+const fs = require('fs');
+const mnemonic = fs.readFileSync(".secret").toString().trim();
 
 module.exports = {
   /**
@@ -71,6 +71,38 @@ module.exports = {
     // network_id: 2111,   // This network is yours, in the cloud.
     // production: true    // Treats this network as if it was a public net. (default: false)
     // }
+    ganache: {
+      host: "127.0.0.1",
+      port: 8545,
+      network_id: "*",
+    },
+
+    // BSC Testnet
+    testnet: {
+      //provider: () => new HDWalletProvider(mnemonic, `https://data-seed-prebsc-1-s1.binance.org:8545/`),
+       provider: () => new HDWalletProvider(mnemonic, `https://data-seed-prebsc-2-s3.binance.org:8545/`),
+      network_id: 97,
+      confirmations: 0,
+      timeoutBlocks: 200,
+      skipDryRun: false,
+      networkCheckTimeout: 60000,
+    },
+    // BSC Mainnet
+    mainnet: {
+      // provider: () => new HDWalletProvider(mnemonic, `https://bsc-dataseed.binance.org`),
+      // provider: () => new HDWalletProvider(mnemonic, `https://bsc-dataseed2.binance.org`),
+      // provider: () => new HDWalletProvider(mnemonic, `https://bsc-dataseed3.binance.org`),
+      provider: () => new HDWalletProvider(mnemonic, `https://bsc-dataseed4.binance.org`),
+      // provider: () => new HDWalletProvider(mnemonic, `https://bsc-dataseed1.defibit.io`),
+      // provider: () => new HDWalletProvider(mnemonic, `https://bsc-dataseed2.defibit.io`),
+      // provider: () => new HDWalletProvider(mnemonic, `https://bsc-dataseed4.defibit.io`),
+      // provider: () => new HDWalletProvider(mnemonic, `https://bsc-dataseed1.ninicoin.io`),
+      network_id: 56,
+      confirmations: 1,
+      timeoutBlocks: 200,
+      skipDryRun: false,
+      networkCheckTimeout: 60000,
+    }
   },
 
   // Set default mocha options here, use special reporters etc.
@@ -81,15 +113,14 @@ module.exports = {
   // Configure your compilers
   compilers: {
     solc: {
-      // version: "0.5.1",    // Fetch exact version from solc-bin (default: truffle's version)
-      // docker: true,        // Use "0.5.1" you've installed locally with docker (default: false)
-      // settings: {          // See the solidity docs for advice about optimization and evmVersion
-      //  optimizer: {
-      //    enabled: false,
-      //    runs: 200
-      //  },
-      //  evmVersion: "byzantium"
-      // }
+      version: "0.8.9",    // Fetch exact version from solc-bin (default: truffle's version)
+      docker: false,        // Use "0.5.1" you've installed locally with docker (default: false)
+      settings: {          // See the solidity docs for advice about optimization and evmVersion
+        optimizer: {
+          enabled: true,
+          runs: 200
+        },
+      }
     }
   },
 
@@ -113,4 +144,12 @@ module.exports = {
     //   }
     // }
   // }
+  // Contract verification
+  plugins: [
+    'truffle-plugin-verify',
+    "@chainsafe/truffle-plugin-abigen"
+  ],
+  api_keys: {
+    bscscan: "K37AUJ66HBQVFRQNV4S18T2MJ31Z1UFENS"
+  },
 };

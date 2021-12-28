@@ -18,6 +18,8 @@ contract NFT is ERC721Enumerable ,Ownable,Pausable ,ReentrancyGuard{
 
     constructor(string memory _name,string memory _symbol) ERC721(_name, _symbol) {
         maxAmount = 1000;
+        priceBNBPerNFT = 10**16;
+        addressBNBReceiver = owner();
     }
 
     function setPause() external onlyOwner {
@@ -32,12 +34,14 @@ contract NFT is ERC721Enumerable ,Ownable,Pausable ,ReentrancyGuard{
         maxAmount = _amount;
     }
 
-    function mint(address _to, uint256 _tokenId) payable external whenNotPaused nonReentrant  {
+    function mint(address _to) payable external whenNotPaused nonReentrant  {
+        require(priceBNBPerNFT > 0, 'price invalid');
         require(priceBNBPerNFT == msg.value , "amount invalid");
         require(maxAmount > totalSupply() , "sold out");
         (bool bnbReceived, ) = addressBNBReceiver.call{value: msg.value}("");
         require(bnbReceived);
-        _mint(_to, _tokenId);
+        uint256 tokenId = totalSupply();
+        _mint(_to, tokenId);
     }
 
     function setBaseURI(string memory _uri) external onlyOwner {

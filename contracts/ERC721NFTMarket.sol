@@ -25,6 +25,10 @@ contract ERC721NFTMarket is ERC721Holder, Ownable, ReentrancyGuard {
         uint256 price; // price of the token
     }
 
+    constructor(){
+        serviceFeeReceiver = owner();
+    }
+
     modifier isERC721(address _nftAddress) {
         require(IERC721(_nftAddress).supportsInterface(0x80ac58cd), "Operations: Not ERC721");
         _;
@@ -32,6 +36,13 @@ contract ERC721NFTMarket is ERC721Holder, Ownable, ReentrancyGuard {
     modifier onlyNFTOwner(address _nftAddress,uint256 _nftId) {
         require(IERC721(_nftAddress).ownerOf(_nftId) == msg.sender, "Not the owner of this one");
         _;
+    }
+
+    modifier onlyOwnerNFTSelling(address _nftAddress,uint256 _nftId) {
+        Ask memory ask = nftsOnSale[_nftAddress][_nftId];
+        require(ask.seller == msg.sender, "Not the owner of this one");
+        _;
+       
     }
 
     function setServiceFee(uint256 _value) external onlyOwner {
@@ -69,15 +80,16 @@ contract ERC721NFTMarket is ERC721Holder, Ownable, ReentrancyGuard {
         emit NFTListed(_nftAddress, msg.sender, _nftId, _price);
     }
 
-    function _cancelSale(address _nftAddress , uint256 _nftId) private {
-        require(_tokenIdsOfSellerForNFTAdress[_nftAddress][msg.sender].contains(_nftId), "Order: Token not listed");
-        _tokenIdsOfSellerForNFTAdress[_nftAddress][msg.sender].remove(_nftId);
+    function _cancelSale(address _nftAddress , address _seller , uint256 _nftId) private {
+        require(_tokenIdsOfSellerForNFTAdress[_nftAddress][_seller].contains(_nftId), "Order: Token not listed");
+        _tokenIdsOfSellerForNFTAdress[_nftAddress][_seller].remove(_nftId);
         delete nftsOnSale[_nftAddress][_nftId];
         emit NFTDelisted(_nftAddress,_nftId);
     }
 
-    function cancelSale(address _nftAddress , uint256 _nftId) external isERC721(_nftAddress) onlyNFTOwner(_nftAddress,_nftId) nonReentrant {
-        _cancelSale(_nftAddress , _nftId);
+    function cancelSale(address _nftAddress , uint256 _nftId) external isERC721(_nftAddress) onlyOwnerNFTSelling(_nftAddress,_nftId) nonReentrant {
+        _cancelSale(_nftAddress , msg.sender , _nftId);
+        IERC721(_nftAddress).safeTransferFrom(address(this), msg.sender, _nftId);
     }
 
     function _makeTransaction(
@@ -93,7 +105,7 @@ contract ERC721NFTMarket is ERC721Holder, Ownable, ReentrancyGuard {
 
         (bool transferToTreasury, ) = serviceFeeReceiver.call{value: fee}("");
         require(transferToTreasury);
-        _cancelSale(_nftAddress , _nftId);
+        _cancelSale(_nftAddress , _seller , _nftId);
         IERC721(_nftAddress).safeTransferFrom(address(this), _buyer, _nftId);
     }
 
