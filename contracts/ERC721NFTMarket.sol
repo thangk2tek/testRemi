@@ -27,6 +27,7 @@ contract ERC721NFTMarket is ERC721Holder, Ownable, ReentrancyGuard {
 
     constructor(){
         serviceFeeReceiver = owner();
+        serviceFee = 500;
     }
 
     modifier isERC721(address _nftAddress) {
@@ -57,7 +58,7 @@ contract ERC721NFTMarket is ERC721Holder, Ownable, ReentrancyGuard {
         return (_price * serviceFee) / FEE_RATIO;
     }
     
-    function BuyOnSale(address _nftAddress, uint256 _nftId) payable external isERC721(_nftAddress) {
+    function buyOnSale(address _nftAddress, uint256 _nftId) payable external isERC721(_nftAddress) {
         Ask memory ask =  nftsOnSale[_nftAddress][_nftId];
         uint256 price = ask.price;
         address buyer = msg.sender;
